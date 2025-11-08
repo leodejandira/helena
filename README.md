@@ -1,17 +1,49 @@
-Versão um da assistente virtual - mvp - gerenciamento de tarefas
+# Helena assistent
 
-Objetivo do projeto:
-    Criar ecossitema de assistentes completo, capaz de elaborar criticamente e gerir planos de tarefas com calendários, listas e afins, gravar transcricoes e permitir perguntas e interassoes com as mesmas servindo de recurso para memória, pesquisar sobre determinado assunto via web, lançar valores em tabelas como tabela de gfastos ou registros de treinos e posteriormente metrificar elas caso solicitado, armazenar exames médicos e perfis de saúde, entre outros.
+**Resume**
 
-mvp
-    Criar um asssitente virtual para criar e gerenciamento de tarefas e com memória retroalimentavel para resumo de transcrições sempre que solicitado
+    Create a complete assistant ecosystem capable of critically developing and managing task plans with calendars, lists, and the like; recording transcripts and allowing questions and interactions with the same resource requests for memory; searching for a topic in question via the web; entering values ​​into tables such as graph tables or training logs and subsequently measuring the requested cases; storing medical exams and health profiles, among others.
 
-Diário de desenv
-- 08/nov: 
-Criado repositório no git. 
-Escrito o readme com diário de tarefas. 
-Foi escolhida a plat docker para versionamento. 
-Escrito os requerimentos iniciais.
-Criado o docker compose para gerenciamento de contweiner futuros
-Criado arquivos .ignore
-Criado arquivo .env com as variáveis do supabase (credenciais)
+**MVP**
+    Create a virtual assistent for tasks build and menager, with retroactive memory for resume of transcriptons every time that was solicted
+
+
+## Make commands
+```bash
+make dev          # desenv with logs
+make shell        # container access
+make logs         # show logs
+make down         # sotp containner
+```
+
+
+# Desenv Journal
+#### 08/nov: 
+**Setup**
+Builded git. repository 
+Writed  readme journal. 
+Choused docker for versionament plataform. 
+Writed initial requeriments.
+Builde docker compose for future container menager
+Writed .ignore
+Created file .env withe supabase variables
+Created make file with docker commands
+
+**Base modules and first route**
+create tables: 
+- plans, columns: id, name, description, context, status, created_at, updated_at
+- tasks, columns: id, plan_id, description, due_date, status, priority, created_at, updated_at
+- memories, columns: id, title, content, summary, type, metadata, vector, created_at
+
+Created folder app > models
+Created file task_models.py (module using pydantic for plan and task models, with definition of obrigatory and optional fields)
+Created file memory_models.py (module using pydantic for memories, with definition of obrigatory and optional fields)
+
+Created folder app > core
+Created file config.py (module for db config)
+Created file database.py (module for connection and test of db)
+
+
+Created folder app > routes
+Created file assistant_routes.py (module for routes organization. Have only 2 routes and return a simple dict to test)
+
