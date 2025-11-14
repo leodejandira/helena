@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Helena Assistant</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .voice-btn {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        }
+        
+        .voice-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .voice-btn.listening {
+            background: linear(135deg, #00d2d3, #54a0ff);
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { 
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(0, 210, 211, 0.7);
+            }
+            70% { 
+                transform: scale(1.1);
+                box-shadow: 0 0 0 15px rgba(0, 210, 211, 0);
+            }
+            100% { 
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(0, 210, 211, 0);
+            }
+        }
+        
+        #response {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 15px;
+            background: #f8f9fa;
+            min-height: 60px;
+            border-left: 4px solid #667eea;
+            text-align: left;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .status {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Helena Assistant</h1>
+        <div class="subtitle">Clique e fale para adicionar tarefas</div>
+        
+        <button class="voice-btn" id="voiceButton" title="Clique para falar">
+            🎤
+        </button>
+        
+        <div id="response">
+            Clique no botão e comece a falar...
+        </div>
+        
+        <div class="status" id="status">
+            Conectado • Pronto para usar
+        </div>
+    </div>
+
+    <script>
+        const voiceButton = document.getElementById('voiceButton');
+        const responseDiv = document.getElementById('response');
+        const statusDiv = document.getElementById('status');
+        
+        // Verificar suporte à Web Speech API
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        
+        if (!SpeechRecognition) {
+            responseDiv.innerHTML = "❌ Seu navegador não suporta reconhecimento de voz. Use Chrome ou Edge.";
+            voiceButton.disabled = true;
+            statusDiv.innerHTML = "Navegador não compatível";
+        } else {
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'pt-BR';
+
+            recognition.onstart = () => {
+                voiceButton.classList.add('listening');
+                responseDiv.innerHTML = "🎙️ <em>Ouvindo...</em>";
+                statusDiv.innerHTML = "Gravando áudio...";
+            };
+
+            recognition.onend = () => {
+                voiceButton.classList.remove('listening');
+                statusDiv.innerHTML = "Processando...";
+            };
+
+            recognition.onresult = async (event) => {
+                const transcript = event.results[0][0].transcript;
+                responseDiv.innerHTML = `<strong>Você:</strong> ${transcript}`;
+                statusDiv.innerHTML = "Enviando para análise...";
+                
+                try {
+                    const response = await fetch('/api/v1/process-voice', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            text: transcript,
+                            timestamp: new Date().toISOString()
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    responseDiv.innerHTML += `<br><strong>Helena:</strong> ${data.response}`;
+                    statusDiv.innerHTML = "Pronto • " + new Date().toLocaleTimeString();
+                    
+                } catch (error) {
+                    console.error('Erro:', error);
+                    responseDiv.innerHTML += `<br>❌ <strong>Erro:</strong> Não foi possível processar o comando`;
+                    statusDiv.innerHTML = "Erro de conexão";
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Erro recognition:', event.error);
+                responseDiv.innerHTML = `❌ <strong>Erro:</strong> ${event.error}`;
+                voiceButton.classList.remove('listening');
+                statusDiv.innerHTML = "Erro no reconhecimento";
+            };
+
+            voiceButton.addEventListener('click', () => {
+                if (voiceButton.classList.contains('listening')) {
+                    recognition.stop();
+                } else {
+                    recognition.start();
+                }
+            });
+            
+            statusDiv.innerHTML = "Pronto • Web Speech API ativa";
+        }
+    </script>
+</body>
+</html>

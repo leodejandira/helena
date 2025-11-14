@@ -1,17 +1,9 @@
-fastapi==0.121.0
-uvicorn==0.38.0
-supabase==2.24.0
-python-multipart==0.0.20
-python-dotenv==1.2.1
-# Atenção: LangChain e OpenAI tiveram grandes alterações (breaking changes)
-# O pacote LangChain principal deve ser instalado, e as integrações (como a do OpenAI) separadamente.
-langchain==0.0.346 # Versão legacy para manter a compatibilidade inicial, ou veja as notas de migração.
-# OU: langchain-core e as integrações específicas (ex: langchain-openai)
-# Se você está usando a nova arquitetura do LangChain:
-# langchain-core==...
-# langchain-openai==1.0.2
-
-openai==2.7.1 # Grande alteração! Verifique o guia de migração.
-pydantic==2.12.0
-httpx==0.28.1
-httpcore==1.0.9
+fastapi==0.104.1
+uvicorn==0.24.0
+sqlalchemy==2.0.23
+python-multipart==0.0.6
+speechrecognition==3.10.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+python-dotenv==1.0.0
+supabase==1.0.3

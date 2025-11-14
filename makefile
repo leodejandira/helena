@@ -3,7 +3,7 @@
 check:
 	@docker info > /dev/null 2>&1 || (echo "Docker is not running. Starting Docker..."; open -a Docker && sleep 10 && docker info > /dev/null 2>&1 || (echo "Failed to start Docker. Please start Docker manually." && exit 1))
 
-build:
+build: check
 	docker-compose build
 
 up:

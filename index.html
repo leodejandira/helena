@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Helena Teste</title>
+    <style>
+        body { font-family: sans-serif; display: grid; place-items: center; min-height: 100vh; background: #222; color: white; }
+        #mic-button { font-size: 2rem; padding: 20px; border-radius: 50%; cursor: pointer; }
+        #mic-button.recording { background-color: red; color: white; }
+    </style>
+</head>
+<body>
+
+    <button id="mic-button">🎙️</button>
+    <h3 id="status">Clique no microfone para falar</h3>
+
+    <script>
+        const toggleButton = document.getElementById('mic-button');
+        const statusEl = document.getElementById('status');
+        
+        // 1. Inicializa o Reconhecimento de Voz (STT)
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'pt-BR';
+        recognition.interimResults = false;
+
+        let isRecording = false;
+
+        toggleButton.addEventListener('click', () => {
+            if (isRecording) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        });
+
+        recognition.onstart = () => {
+            isRecording = true;
+            statusEl.innerText = "Ouvindo...";
+            toggleButton.classList.add('recording');
+        };
+
+        recognition.onend = () => {
+            isRecording = false;
+            statusEl.innerText = "Clique no microfone para falar";
+            toggleButton.classList.remove('recording');
+        };
+
+        // 2. Ocorre quando o navegador processa o áudio
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            statusEl.innerText = `Você disse: "${transcript}"`;
+            
+            // 3. Envia o texto para o Backend (FastAPI)
+            sendCommand(transcript);
+        };
+
+        async function sendCommand(text) {
+            try {
+                // Ajuste a URL se seu Docker expor em porta diferente
+                const response = await fetch('http://localhost:8000/api/command', { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text })
+                });
+                
+                const data = await response.json();
+                
+                // 4. Recebe a resposta do backend e FALA (TTS)
+                speak(data.response_text);
+
+            } catch (error) {
+                console.error("Erro ao contatar a API:", error);
+                speak("Desculpe, estou com problemas de conexão com meu cérebro.");
+            }
+        }
+
+        // 5. Função de Fala (TTS)
+        function speak(text) {
+            statusEl.innerText = `Helena: "${text}"`;
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'pt-BR';
+            speechSynthesis.speak(utterance);
+        }
+
+    </script>
+</body>
+</html>
